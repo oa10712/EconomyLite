@@ -3,9 +3,8 @@
  */
 package io.github.flibio.economylite.commands;
 
-import io.github.flibio.economylite.TextUtils;
-
 import io.github.flibio.economylite.EconomyLite;
+import io.github.flibio.economylite.TextUtils;
 import io.github.flibio.economylite.api.CurrencyEconService;
 import io.github.flibio.utils.commands.AsyncCommand;
 import io.github.flibio.utils.commands.BaseCommandExecutor;
@@ -17,10 +16,9 @@ import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.command.spec.CommandSpec.Builder;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.event.cause.EventContext;
+import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
@@ -52,7 +50,7 @@ public class PayCommand extends BaseCommandExecutor<Player> {
             Currency currency = currencyService.getCurrentCurrency();
             if (amount.doubleValue() < 1) {
                 src.sendMessage(messageStorage.getMessage("command.pay.invalid"));
-            } else {
+            } else if (src.hasPermission("economylite.pay." + currency.getName())) {
                 Player target = args.<Player>getOne("player").get();
                 if (!EconomyLite.getConfigManager().getValue(Boolean.class, false, "confirm-offline-payments") || target.isOnline()) {
                     // Complete the payment
@@ -67,6 +65,8 @@ public class PayCommand extends BaseCommandExecutor<Player> {
                     }));
                 }
 
+            } else {
+                src.sendMessage(Text.of("You do not have permission to sent that currency"));
             }
         } else if (args.getOne("player").isPresent() && args.getOne("amount").isPresent() && args.getOne("currency").isPresent()) {
             BigDecimal amount = BigDecimal.valueOf(args.<Double>getOne("amount").get());
@@ -77,7 +77,7 @@ public class PayCommand extends BaseCommandExecutor<Player> {
                     found = true;
                     if (amount.doubleValue() < 1) {
                         src.sendMessage(messageStorage.getMessage("command.pay.invalid"));
-                    } else {
+                    } else if (src.hasPermission("economylite.pay." + currency)) {
                         Player target = args.<Player>getOne("player").get();
                         if (!EconomyLite.getConfigManager().getValue(Boolean.class, false, "confirm-offline-payments") || target.isOnline()) {
                             // Complete the payment
@@ -92,6 +92,8 @@ public class PayCommand extends BaseCommandExecutor<Player> {
                             }));
                         }
 
+                    } else {
+                        src.sendMessage(Text.of("You do not have permission to sent that currency"));
                     }
                 }
             }
